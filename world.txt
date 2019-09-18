@@ -1,0 +1,7 @@
+class World{
+
+	public function Hello(){
+		return "hello!";
+	}
+
+}
