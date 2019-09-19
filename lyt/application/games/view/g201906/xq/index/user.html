@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>相亲数据统计</title>
+        <base href="https://aiwei.weilot.com/static/admin/index/">
+        <link rel="shortcut icon" href="favicon.ico">
+        <link href="css/bootstrap.min.css?v=3.3.5" rel="stylesheet">
+        <link href="css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+        <!-- Data Tables -->
+        <link href="css/plugins/dataTables/dataTables.bootstrap.css" rel="stylesheet">
+        <link href="css/style.min.css?v=4.0.0" rel="stylesheet">
+        <style type="text/css">
+            .img img {
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+            }
+            body .gohome{
+                display:none;
+            }
+            #test1{
+				color:red;
+			}
+        </style>
+    </head>
+
+    <body class="gray-bg">
+        <div class="wrapper wrapper-content animated fadeInRight">
+    	<h5 id="count"></h5>
+    	<!-- <h5 id="coin">
+            <form action="http://game.vimionline.com/games/g201905.dgmusic.index/downloadExcel" method="get">                
+	    		<button class="btn btn-success" style="float: right;margin: 10px 23px;">导出Excel</button>
+			</form>  
+        </h5> -->
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-content">
+                            <table class="table prize-table table-striped table-bordered table-hover dataTables-example">
+                                <thead>
+                                    <tr>
+                                        <!-- <th>序号</th> -->
+                                        <th>微信昵称</th>
+                                        <th>微信头像</th>
+                                        <th>性别</th>
+                                        <th>昵称</th>
+                                        <th>年龄</th>
+                                        <th>公司名称</th>
+                                        <th>职务</th>
+                                        <th>电话</th>
+                                        <th>微信号</th>
+                                        <th>爱好</th>
+                                        <th>心中TA的样子</th>
+                                        <th>个人生活照</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableAjax"></tbody>
+                            </table>
+                            <div id="example" style="text-align: center">
+                                <ul id="pageLimit"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="js/jquery.min.js?v=2.1.4"></script>
+        <script src="js/bootstrap.min.js?v=3.3.5"></script>
+        <script src="js/bootstrap-paginator.js"></script>
+        <script src="js/content.min.js?v=1.0.0"></script>
+        <script>
+
+            var pageCount;  //总页数
+            var pageSize;   //每页总数
+            var pageNow;    //当前页
+
+            //初始化
+            $(function(){stable();});
+
+            function stable(){
+                $.ajax({
+                    url: "http://game.vimionline.com/games/g201906.xq.index/getU",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        page: 1
+                    },
+                    success: function (data) {
+                        var k = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                        var w = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                        var table = $('#tableAjax');
+                        var text1 = w+'用户总数'+"&nbsp;"+'：<em id="test1">'+data.co+'</em>';
+                        $('#count').append(text1);
+                        
+                        var len = data.data.length;
+                        var tableStr = '';
+                        $.each(data.data, function (i, n) {
+                        	var sex = '';
+                        	if(n.sex==1){
+                        		sex = '男';
+                        	}else{
+                        		sex = '女';
+                        	}
+                            var tableStr = $(
+                           		"<tr data-s='"+n.id+"'>" +
+                                "<td>" + n.wxName + "</td>" +
+                                "<td><img src='" + n.wxPic + "' style='width: 40px;height: 40px;border-radius: 50%'></td>"+
+                                "<td>" + sex + "</td>" +
+                                "<td>" + n.nickName + "</td>" +
+                                "<td>" + n.age + "</td>" +
+                                "<td>" + n.company + "</td>" +
+                                "<td>" + n.position + "</td>" +
+                                "<td>" + n.tel + "</td>" +
+                                "<td>" + n.wxNumber + "</td>" +
+                                "<td>" + n.likes + "</td>" +
+                                "<td>" + n.expect + "</td>" +
+                                "<td><img src='"+n.picUrl+"' style='width: 100px;height: auto;'></td>" +
+                                "</tr>"
+                            );
+                            table.append(tableStr);
+                        });
+                        pageCount=data.pageCount;
+                        pageSize=data.pageSize;
+                        pageNow=data.nowPage;
+                        page();//分页
+                    }
+                });
+            }
+
+            //分页
+            function page() {
+                var page = $("");
+                $('#pageLimit').bootstrapPaginator({
+                    currentPage: pageNow,       //当前页面
+                    totalPages: pageCount,      //总页数
+                    size: "normal",
+                    bootstrapMajorVersion: 3,   //bootstrap的版本
+                    alignment: "right",
+                    numberOfPages: pageSize,    //一页列出多少数据。
+                    itemTexts: function (type, page, current) { //如下的代码是将页眉显示的中文显示我们自定义的中文。
+                        switch (type) {
+                            case "first" :   return "首页";
+                            case "prev"  :   return "上一页";
+                            case "next"  :   return "下一页";
+                            case "last"  :   return "末页";
+                            case "page"  :   return page;
+                        }
+                    },
+                    //改写分页按钮字样
+                    //给每个页眉绑定一个事件，其实就是ajax请求，其中page变量为当前点击的页上的数字。
+                    onPageClicked: function (event, originalEvent, type, page) { 
+                        $.ajax({
+                            url: "http://game.vimionline.com/games/g201906.xq.index/getU",
+                            type: "POST",
+                            dataType: "json",
+                            data: {
+                                page:page
+                            },
+                            success: function (data) {
+                                $('.prize-table tbody').empty();//清空之前列表
+                                var table = $('#tableAjax');
+                                var len = data.data.length;
+                                var tableStr = '';
+                                $.each(data.data, function (i, n) {
+                                	var sex = '';
+                                	if(n.sex==1){
+                                		sex = '男';
+                                	}else{
+                                		sex = '女';
+                                	}
+                                    var tableStr = $(
+                                   		"<tr data-s='"+n.id+"'>" +
+                                        "<td>" + n.wxName + "</td>" +
+                                        "<td><img src='" + n.wxPic + "' style='width: 40px;height: 40px;border-radius: 50%'></td>"+
+                                        "<td>" + sex + "</td>" +
+                                        "<td>" + n.nickName + "</td>" +
+                                        "<td>" + n.age + "</td>" +
+                                        "<td>" + n.company + "</td>" +
+                                        "<td>" + n.position + "</td>" +
+                                        "<td>" + n.tel + "</td>" +
+                                        "<td>" + n.wxNumber + "</td>" +
+                                        "<td>" + n.likes + "</td>" +
+                                        "<td>" + n.expect + "</td>" +
+                                        "<td><img src='"+n.picUrl+"' style='width: 100px;height: auto;'></td>" +
+                                        "</tr>"
+                                    );
+                                    table.append(tableStr);
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        </script>
+        
+    </body>
+</html>
