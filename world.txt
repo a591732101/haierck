@@ -1,5 +1,8 @@
 class World{
-
+	
+	/**
+	*入口文件
+	*/
 	public function Hello(){
 		return "hello!";
 	}
